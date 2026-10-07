@@ -1,4 +1,4 @@
--- Lock-On Script (Bigger GUI + Working Smooth Slider)
+-- Lock-On Script (Fixed ShiftLock + Bigger GUI + Working Slider)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -24,7 +24,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local main = Instance.new("Frame")
 main.Name = "Main"
-main.Size = UDim2.new(0, 200, 0, 85) -- bigger
+main.Size = UDim2.new(0, 200, 0, 85)
 main.Position = UDim2.new(0.5, -100, 0.84, 0)
 main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 main.BorderSizePixel = 0
@@ -49,7 +49,7 @@ shadow.SliceCenter = Rect.new(49, 49, 450, 450)
 shadow.ZIndex = 0
 shadow.Parent = main
 
--- Toggle track (the smooth bar)
+-- Toggle track
 local track = Instance.new("Frame")
 track.Name = "Track"
 track.Size = UDim2.new(0, 64, 0, 32)
@@ -62,7 +62,7 @@ local trackCorner = Instance.new("UICorner")
 trackCorner.CornerRadius = UDim.new(1, 0)
 trackCorner.Parent = track
 
--- Slider circle
+-- Slider
 local slider = Instance.new("Frame")
 slider.Name = "Slider"
 slider.Size = UDim2.new(0, 26, 0, 26)
@@ -160,7 +160,6 @@ local function setToggle(state)
 	isOn = state
 
 	if isOn then
-		-- Slide to the right + green
 		TweenService:Create(slider, tweenInfo, {
 			Position = UDim2.new(1, -29, 0.5, -13),
 			BackgroundColor3 = Color3.fromRGB(65, 230, 120)
@@ -173,7 +172,6 @@ local function setToggle(state)
 		label.Text = "LOCK  •  ON"
 		label.TextColor3 = Color3.fromRGB(100, 255, 150)
 	else
-		-- Slide to the left + red
 		TweenService:Create(slider, tweenInfo, {
 			Position = UDim2.new(0, 3, 0.5, -13),
 			BackgroundColor3 = Color3.fromRGB(255, 75, 75)
@@ -192,8 +190,15 @@ local function toggleLock()
 	setToggle(not isOn)
 
 	if isOn then
+		-- Force mouse to stay in the center (fixes ShiftLock)
+		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+		UserInputService.MouseIconEnabled = false
+
 		connection = RunService.RenderStepped:Connect(function()
 			if not humanoidRootPart or not humanoidRootPart.Parent then return end
+
+			-- Keep forcing mouse lock every frame (very important)
+			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 
 			local target = getNearestPlayer()
 			if target then
@@ -218,6 +223,10 @@ local function toggleLock()
 			connection:Disconnect()
 			connection = nil
 		end
+
+		-- Restore normal mouse
+		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+		UserInputService.MouseIconEnabled = true
 		camera.CameraType = Enum.CameraType.Custom
 	end
 end
