@@ -1,4 +1,4 @@
--- Lock-On Script (Clean GUI Version)
+-- Lock-On Script (Improved Camera + Draggable Square GUI) - No "C" label
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -14,7 +14,7 @@ if player.PlayerGui:FindFirstChild("LockOnGui") then
 end
 
 -------------------------------------------------
--- Clean GUI
+-- Square + Draggable GUI
 -------------------------------------------------
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "LockOnGui"
@@ -22,29 +22,28 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Main container
 local main = Instance.new("Frame")
 main.Name = "Main"
-main.Size = UDim2.new(0, 180, 0, 55)
-main.Position = UDim2.new(0.5, -90, 0.87, 0)
-main.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
+main.Size = UDim2.new(0, 160, 0, 70)
+main.Position = UDim2.new(0.5, -80, 0.85, 0)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
 main.BorderSizePixel = 0
+main.Active = true
 main.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.CornerRadius = UDim.new(0, 14)
 mainCorner.Parent = main
 
 -- Soft shadow
 local shadow = Instance.new("ImageLabel")
-shadow.Name = "Shadow"
-shadow.Size = UDim2.new(1, 30, 1, 30)
+shadow.Size = UDim2.new(1, 28, 1, 28)
 shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
 shadow.AnchorPoint = Vector2.new(0.5, 0.5)
 shadow.BackgroundTransparency = 1
 shadow.Image = "rbxassetid://6014261993"
 shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.55
+shadow.ImageTransparency = 0.5
 shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(49, 49, 450, 450)
 shadow.ZIndex = 0
@@ -52,10 +51,9 @@ shadow.Parent = main
 
 -- Toggle track
 local track = Instance.new("Frame")
-track.Name = "Track"
-track.Size = UDim2.new(0, 52, 0, 28)
-track.Position = UDim2.new(0, 14, 0.5, -14)
-track.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+track.Size = UDim2.new(0, 50, 0, 26)
+track.Position = UDim2.new(0, 14, 0.5, -13)
+track.BackgroundColor3 = Color3.fromRGB(42, 42, 50)
 track.BorderSizePixel = 0
 track.Parent = main
 
@@ -63,12 +61,11 @@ local trackCorner = Instance.new("UICorner")
 trackCorner.CornerRadius = UDim.new(1, 0)
 trackCorner.Parent = track
 
--- Slider circle
+-- Slider
 local slider = Instance.new("Frame")
-slider.Name = "Slider"
-slider.Size = UDim2.new(0, 22, 0, 22)
-slider.Position = UDim2.new(0, 3, 0.5, -11)
-slider.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+slider.Size = UDim2.new(0, 20, 0, 20)
+slider.Position = UDim2.new(0, 3, 0.5, -10)
+slider.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 slider.BorderSizePixel = 0
 slider.Parent = track
 
@@ -78,31 +75,48 @@ sliderCorner.Parent = slider
 
 -- Label
 local label = Instance.new("TextLabel")
-label.Name = "Label"
-label.Size = UDim2.new(0, 100, 1, 0)
-label.Position = UDim2.new(0, 72, 0, 0)
+label.Size = UDim2.new(0, 90, 0, 30)
+label.Position = UDim2.new(0, 72, 0.5, -15)
 label.BackgroundTransparency = 1
 label.Text = "LOCK  •  OFF"
-label.TextColor3 = Color3.fromRGB(220, 220, 230)
-label.TextSize = 15
+label.TextColor3 = Color3.fromRGB(210, 210, 220)
+label.TextSize = 14
 label.Font = Enum.Font.GothamMedium
 label.TextXAlignment = Enum.TextXAlignment.Left
 label.Parent = main
 
--- Keybind hint
-local keyHint = Instance.new("TextLabel")
-keyHint.Size = UDim2.new(0, 28, 0, 18)
-keyHint.Position = UDim2.new(1, -38, 0.5, -9)
-keyHint.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
-keyHint.Text = "C"
-keyHint.TextColor3 = Color3.fromRGB(180, 180, 190)
-keyHint.TextSize = 12
-keyHint.Font = Enum.Font.GothamBold
-keyHint.Parent = main
+-------------------------------------------------
+-- Dragging system
+-------------------------------------------------
+local dragging = false
+local dragStart = nil
+local startPos = nil
 
-local keyCorner = Instance.new("UICorner")
-keyCorner.CornerRadius = UDim.new(0, 5)
-keyCorner.Parent = keyHint
+main.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+	end
+end)
+
+main.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStart
+		main.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
 
 -------------------------------------------------
 -- Logic
@@ -143,38 +157,49 @@ local function setToggle(state)
 	isOn = state
 	if isOn then
 		TweenService:Create(slider, tweenInfo, {
-			Position = UDim2.new(1, -25, 0.5, -11),
+			Position = UDim2.new(1, -23, 0.5, -10),
 			BackgroundColor3 = Color3.fromRGB(70, 220, 120)
 		}):Play()
 		TweenService:Create(track, tweenInfo, {
-			BackgroundColor3 = Color3.fromRGB(35, 70, 50)
+			BackgroundColor3 = Color3.fromRGB(30, 65, 45)
 		}):Play()
 		label.Text = "LOCK  •  ON"
-		label.TextColor3 = Color3.fromRGB(120, 255, 160)
+		label.TextColor3 = Color3.fromRGB(110, 255, 150)
 	else
 		TweenService:Create(slider, tweenInfo, {
-			Position = UDim2.new(0, 3, 0.5, -11),
-			BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+			Position = UDim2.new(0, 3, 0.5, -10),
+			BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 		}):Play()
 		TweenService:Create(track, tweenInfo, {
-			BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+			BackgroundColor3 = Color3.fromRGB(42, 42, 50)
 		}):Play()
 		label.Text = "LOCK  •  OFF"
-		label.TextColor3 = Color3.fromRGB(220, 220, 230)
+		label.TextColor3 = Color3.fromRGB(210, 210, 220)
 	end
 end
 
 local function toggleLock()
 	setToggle(not isOn)
+
 	if isOn then
 		connection = RunService.RenderStepped:Connect(function()
 			if not humanoidRootPart or not humanoidRootPart.Parent then return end
+
 			local target = getNearestPlayer()
 			if target then
 				camera.CameraType = Enum.CameraType.Scriptable
-				camera.CFrame = CFrame.lookAt(camera.CFrame.Position, target.Position)
+
 				local rootPos = humanoidRootPart.Position
-				humanoidRootPart.CFrame = CFrame.lookAt(rootPos, Vector3.new(target.Position.X, rootPos.Y, target.Position.Z))
+				local targetPos = target.Position
+				local direction = (targetPos - rootPos).Unit
+
+				local distance = 9
+				local height = 3.5
+
+				local camPos = rootPos - direction * distance + Vector3.new(0, height, 0)
+				camera.CFrame = CFrame.lookAt(camPos, targetPos)
+
+				humanoidRootPart.CFrame = CFrame.lookAt(rootPos, Vector3.new(targetPos.X, rootPos.Y, targetPos.Z))
 			end
 		end)
 	else
@@ -189,10 +214,18 @@ end
 -------------------------------------------------
 -- Inputs
 -------------------------------------------------
+local clickStart = nil
 main.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 
-		or input.UserInputType == Enum.UserInputType.Touch then
-		toggleLock()
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		clickStart = input.Position
+	end
+end)
+
+main.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if clickStart and (input.Position - clickStart).Magnitude < 8 then
+			toggleLock()
+		end
 	end
 end)
 
@@ -203,4 +236,4 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	end
 end)
 
-print("✅ Clean Lock-On loaded | Press C or click the bar")
+print("✅ Lock-On loaded | Drag the box • Press C to toggle")
